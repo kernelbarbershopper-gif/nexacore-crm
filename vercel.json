@@ -3,5 +3,21 @@
   "buildCommand": null,
   "devCommand": null,
   "installCommand": null,
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "functions": {
+    "api/**/*.mjs": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "SUPABASE_DB_HOST": "db.lllrvopolytzyllnuvse.supabase.co",
+    "SUPABASE_DB_PORT": "5432",
+    "SUPABASE_DB_NAME": "postgres",
+    "SUPABASE_DB_USER": "postgres",
+    "SUPABASE_DB_PASSWORD": "NexaCore2026!CRM",
+    "SUPABASE_URL": "https://lllrvopolytzyllnuvse.supabase.co",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsbHJ2b3BvbHl0enlsbG51dnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzE0MjcsImV4cCI6MjA5NzE0NzQyN30.MhEbWsQZiauzvn2QXUzwqGCYBMpEx3sqFwDKvmplx9o",
+    "SUPABASE_SERVICE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsbHJ2b3BvbHl0enlsbG51dnNlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTU3MTQyNywiZXhwIjoyMDk3MTQ3NDI3fQ.FxJaS7P1-zphSxD9UJ2eQiZP0gqF1b-R81yjjYfmm2w",
+    "SETUP_KEY": "nexacore-setup-2026"
+  }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "nexacore-crm",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NexaCore CRM Intelligence",
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}
