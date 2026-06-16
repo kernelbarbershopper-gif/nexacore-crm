@@ -1,17 +1,17 @@
 const { Client } = require('pg');
 const dns = require('dns');
 
-const host = '2600:1f18:4f06:de01:cf4e:ec5d:4b14:71c5';
-const hostname = 'db.lllrvopolytzyllnuvse.supabase.co';
+const host = 'aws-0-us-east-1.pooler.supabase.com';
+const hostname = 'aws-0-us-east-1.pooler.supabase.com';
 
 const client = new Client({
   host,
   hostname,
-  port: 5432,
+  port: 6543,
   database: 'postgres',
-  user: 'postgres',
+  user: 'postgres.lllrvopolytzyllnuvse',
   password: 'NexaCore2026!CRM',
-  ssl: { rejectUnauthorized: false, servername: hostname },
+  ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 30000
 });
 
