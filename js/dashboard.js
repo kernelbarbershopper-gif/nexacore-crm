@@ -1,16 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Render KPIs
-    renderKPIs();
-
-    // 2. Init Neural Map
-    initNeuralMap();
-
-    // 3. Init Revenue Oracle
-    initRevenueOracle();
-
-    // 4. Render Activity Feed
-    renderActivityFeed();
-});
+// Called from index.html after data loads
 
 function getMockKPIs() {
     return [

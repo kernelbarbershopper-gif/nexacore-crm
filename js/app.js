@@ -194,7 +194,4 @@ const NexaApp = {
   }
 };
 
-/* ── DOM Ready ── */
-document.addEventListener('DOMContentLoaded', () => {
-  NexaApp.init();
-});
+/* ── Initialize on DOM ready — data.js calls this via initNexaData() ── */

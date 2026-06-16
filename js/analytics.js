@@ -2,25 +2,23 @@
    Analytics Page Logic
    ═══════════════════════════════════════════════════════════════ */
 
-document.addEventListener('DOMContentLoaded', () => {
+function initAnalytics() {
     initTopMetrics();
     initInsights();
     initPlatformComparison();
     
-    // Defer chart drawing slightly to ensure container dimensions are ready
     setTimeout(() => {
         drawRevenueChart();
         drawConversationsChart();
         drawSentimentChart();
     }, 100);
 
-    // Handle window resize for canvas redraw
     window.addEventListener('resize', () => {
         drawRevenueChart();
         drawConversationsChart();
         drawSentimentChart();
     });
-});
+}
 
 function initTopMetrics() {
     const container = document.getElementById('topMetricsContainer');

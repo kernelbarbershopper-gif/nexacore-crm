@@ -2,9 +2,7 @@
    NexaCore CRM — Contacts Module
    ═══════════════════════════════════════════════════════════════ */
 
-document.addEventListener('DOMContentLoaded', () => {
-
-  // --- Ensure AI & Data features exist ---
+function renderContactsModule() {
   if (!window.NexaAI) window.NexaAI = {};
   if (!NexaAI.generateDNAProfile) {
     NexaAI.generateDNAProfile = function(canvas, dna) {
@@ -265,6 +263,5 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.classList.add('active');
   }
 
-  // Initialize
   renderContacts();
-});
+}

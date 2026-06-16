@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initPipeline() {
     const pipelineBoard = document.getElementById('pipelineBoard');
 
     // Ensure we have data
@@ -150,4 +150,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     renderBoard();
-});
+}

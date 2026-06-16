@@ -1,22 +1,11 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize mock data if NexaData is not fully populated
-    initMockSettingsData();
-
-    // Setup Tabs
+function initSettings() {
+    if (!NexaData.settings) initMockSettingsData();
     setupTabs();
-
-    // Setup Integrations toggles
     setupIntegrations();
-
-    // Setup Ghost Writer Form
     setupGhostWriterForm();
-
-    // Render Automations
     renderAutomations();
-
-    // Render Team
     renderTeam();
-});
+}
 
 function initMockSettingsData() {
     window.NexaData = window.NexaData || {};

@@ -88,10 +88,12 @@
       </div>
     </main>
   </div>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="js/data.js"></script>
   <script src="js/ai-engine.js"></script>
   <script src="js/app.js"></script>
   <script src="js/sidebar.js"></script>
   <script src="js/dashboard.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => { initNexaData().then(() => { NexaApp.init(); renderKPIs(); initNeuralMap(); initRevenueOracle(); renderActivityFeed(); }); });</script>
 </body>
 </html>

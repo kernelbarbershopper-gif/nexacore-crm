@@ -395,4 +395,4 @@ function drawRadarChart(canvasId, data) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initConversations);
+// Called from conversations.html after data loads

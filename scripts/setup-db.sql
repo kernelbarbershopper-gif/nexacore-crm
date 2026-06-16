@@ -1,21 +1,3 @@
-const { Client } = require('pg');
-
-const host = 'aws-1-us-east-1.pooler.supabase.com';
-
-const client = new Client({
-  host,
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres.lllrvopolytzyllnuvse',
-  password: 'NexaCore2026!CRM',
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 30000
-});
-
-async function run() {
-  await client.connect();
-
-  const sql = `
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS contacts (
@@ -139,16 +121,3 @@ INSERT INTO settings (id, brand_voice) VALUES (1, '{"tone":"friendly-professiona
 INSERT INTO team_members (name, role, email, initials, active) VALUES
   ('Admin NexaCore', 'admin', 'admin@nexacore.com', 'AN', true)
 ON CONFLICT DO NOTHING;
-`;
-
-  try {
-    await client.query(sql);
-    console.log('✓ Schema created successfully');
-  } catch (err) {
-    console.error('Error:', err.message);
-  } finally {
-    await client.end();
-  }
-}
-
-run();
