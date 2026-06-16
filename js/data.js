@@ -17,7 +17,7 @@ function fmt(d) {
     score: d.score, pulseScore: d.pulse_score,
     lastContact: d.last_contact, lastMessage: d.last_message,
     city: d.city, company: d.company,
-    dna: d.dna || { frequency: 50, emotion: 50, response: 50, interest: 50, loyalty: 50, influence: 50 },
+    dna: d.dna || null,
     notes: d.notes, conversations: d.conversations || 0,
     totalSpent: Number(d.total_spent || 0), predictedValue: Number(d.predicted_value || 0),
     createdAt: d.created_at
@@ -49,14 +49,6 @@ const NexaData = {
     sentimentDistribution: {},
     platformSplit: {},
     topMetrics: {}
-  },
-
-  ghostWriterResponses: {
-    greeting: ['Oi! Tudo bem? Como posso ajudar?', 'Olá! Bem-vindo(a) à NexaCore!', 'E aí! Vamos conversar?'],
-    pricing: ['Nossos planos começam em R$ 997/mês.', 'Ótima pergunta! Temos opções flexíveis.', 'Investimento a partir de R$ 997/mês.'],
-    followUp: ['Passando para saber se teve dúvidas!', 'Conseguiu analisar a proposta?', 'Bom dia! Condição especial válida até sexta.'],
-    objection: ['Entendo! Posso ajustar o pacote.', 'Compreendo! Quer ver o ROI?', 'Sem problemas! Que tal o Starter?'],
-    closing: ['Perfeito! Vou preparar tudo.', 'Ótima decisão! Bem-vindo(a)!', 'Fechado! Bem-vindo ao time!']
   },
 
   async load() {

@@ -207,25 +207,10 @@ function renderContactsModule() {
     });
   }
 
-  function generateRandomHeatmap() {
+  function generateHeatmap() {
     const container = document.getElementById('heatmapContainer');
     if (!container) return;
     container.innerHTML = '';
-    const days = 30; // Last 30 days
-    for (let i = 0; i < days; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'heatmap-cell';
-      // Random activity level 0-4
-      const level = Math.random() > 0.4 ? Math.floor(Math.random() * 5) : 0;
-      if (level > 0) {
-        cell.setAttribute('data-level', level);
-      }
-      // Add tooltip showing date/interactions
-      const date = new Date();
-      date.setDate(date.getDate() - (days - i - 1));
-      cell.title = `${date.toLocaleDateString('pt-BR')}: ${level * 3} interações`;
-      container.appendChild(cell);
-    }
   }
 
   function openProfile(contact) {
@@ -258,7 +243,7 @@ function renderContactsModule() {
     }
 
     // Heatmap
-    generateRandomHeatmap();
+    generateHeatmap();
 
     overlay.classList.add('active');
   }

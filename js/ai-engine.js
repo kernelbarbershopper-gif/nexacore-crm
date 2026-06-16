@@ -109,7 +109,7 @@ const NexaAI = {
     }
 
     // Sentiment
-    const dna = contact.dna;
+    const dna = contact.dna || {};
     if (dna.emotion >= 75) {
       factors.push({ label: 'Sentimento muito positivo', impact: '+12%', positive: true });
       probability += 12;
@@ -155,7 +155,7 @@ const NexaAI = {
 
   /* ── Customer DNA Profile ── */
   generateDNAProfile(contact) {
-    const dna = contact.dna;
+    const dna = contact.dna || { frequency: 50, emotion: 50, response: 50, interest: 50, loyalty: 50, influence: 50 };
     const dimensions = [
       { label: 'Frequência', value: dna.frequency, color: '#6c5ce7' },
       { label: 'Emoção', value: dna.emotion, color: '#f472b6' },
@@ -188,69 +188,54 @@ const NexaAI = {
     const lastMsg = conversation.messages[conversation.messages.length - 1];
 
     if (!lastMsg || lastMsg.from === 'agent') {
-      // Follow-up suggestions
-      const followUps = NexaData.ghostWriterResponses.followUp;
       suggestions.push({
         type: 'follow_up',
         label: '📲 Follow-up',
-        text: followUps[Math.floor(Math.random() * followUps.length)]
+        text: `Oi ${contact.name.split(' ')[0]}! Tudo bem? Passando pra saber se ficou alguma dúvida.`
       });
     } else {
       const text = lastMsg.text.toLowerCase();
 
-      // Detect intent and suggest responses
       if (/quanto|preço|valor|custa|investimento|plano/.test(text)) {
-        const pricing = NexaData.ghostWriterResponses.pricing;
         suggestions.push({
-          type: 'pricing',
-          label: '💰 Preço',
-          text: pricing[Math.floor(Math.random() * pricing.length)]
+          type: 'pricing', label: '💰 Preço',
+          text: `Os planos começam a partir de R$ 997/mês. Posso te enviar mais detalhes?`
         });
       }
 
       if (/oi|olá|bom dia|boa tarde|boa noite|eae|e aí/.test(text)) {
-        const greetings = NexaData.ghostWriterResponses.greeting;
         suggestions.push({
-          type: 'greeting',
-          label: '👋 Saudação',
-          text: greetings[Math.floor(Math.random() * greetings.length)]
+          type: 'greeting', label: '👋 Saudação',
+          text: `Olá ${contact.name.split(' ')[0]}! Tudo bem? Como posso te ajudar hoje?`
         });
       }
 
       if (/caro|desconto|barato|orçamento|acima|não cabe/.test(text)) {
-        const objections = NexaData.ghostWriterResponses.objection;
         suggestions.push({
-          type: 'objection',
-          label: '🛡️ Objeção',
-          text: objections[Math.floor(Math.random() * objections.length)]
+          type: 'objection', label: '🛡️ Objeção',
+          text: `Entendo perfeitamente! Podemos ajustar o pacote para algo que encaixe no seu orçamento.`
         });
       }
 
       if (/fechar|fechamos|quero|vamos|bora|aceito/.test(text)) {
-        const closings = NexaData.ghostWriterResponses.closing;
         suggestions.push({
-          type: 'closing',
-          label: '🎯 Fechamento',
-          text: closings[Math.floor(Math.random() * closings.length)]
+          type: 'closing', label: '🎯 Fechamento',
+          text: `Perfeito! Vou preparar tudo pra você. Bem-vindo(a) ao time! 🚀`
         });
       }
 
-      // Always add a generic smart reply
       if (suggestions.length === 0) {
         suggestions.push({
-          type: 'smart',
-          label: '🤖 Resposta IA',
-          text: `Oi ${contact.name.split(' ')[0]}! Que legal sua mensagem! Posso te ajudar com mais alguma coisa? 😊`
+          type: 'smart', label: '🤖 Resposta IA',
+          text: `Oi ${contact.name.split(' ')[0]}! Que legal sua mensagem! Como posso ajudar?`
         });
       }
     }
 
-    // Ensure at least 2 suggestions
     if (suggestions.length < 2) {
       suggestions.push({
-        type: 'custom',
-        label: '✨ Personalizada',
-        text: `${contact.name.split(' ')[0]}, quero te ajudar da melhor forma! Me conta mais sobre o que você precisa? 💜`
+        type: 'custom', label: '✨ Personalizada',
+        text: `${contact.name.split(' ')[0]}, me conta mais sobre o que você precisa? 💜`
       });
     }
 
@@ -358,7 +343,7 @@ Formato de resposta EXIGIDO (retorne APENAS um JSON array de strings):
       });
     }
 
-    if (deal.stage === 'contacted' && contact.dna.interest >= 70) {
+    if (deal.stage === 'contacted' && (contact.dna || {}).interest >= 70) {
       recommendations.push({
         action: 'move',
         to: 'qualified',
@@ -397,9 +382,9 @@ Formato de resposta EXIGIDO (retorne APENAS um JSON array de strings):
 
   /* ── Relationship Pulse ── */
   calculatePulse(contact) {
-    const base = contact.pulseScore;
+    const base = contact.pulseScore || 50;
     const daysSinceContact = Math.floor(
-      (new Date('2026-06-15T21:00:00') - new Date(contact.lastContact)) / (1000 * 60 * 60 * 24)
+      (new Date() - new Date(contact.lastContact)) / (1000 * 60 * 60 * 24)
     );
 
     let adjusted = base;
@@ -422,48 +407,7 @@ Formato de resposta EXIGIDO (retorne APENAS um JSON array de strings):
 
   /* ── AI Insights ── */
   generateInsights() {
-    return [
-      {
-        id: 'i1', type: 'opportunity', priority: 'high',
-        title: 'Oportunidade de Upsell',
-        description: 'Camila Ferreira (Bella Estética) está com satisfação máxima e indicando novos clientes. Momento ideal para propor upgrade de plano.',
-        action: 'Enviar proposta de upgrade',
-        contactId: 'c3'
-      },
-      {
-        id: 'i2', type: 'risk', priority: 'high',
-        title: 'Lead Esfriando',
-        description: 'Lucas Mendes não responde há 2 dias e o Pulse Score caiu para 38. Risco de perda iminente.',
-        action: 'Enviar follow-up urgente',
-        contactId: 'c4'
-      },
-      {
-        id: 'i3', type: 'trend', priority: 'medium',
-        title: 'Instagram superando WhatsApp',
-        description: 'Leads do Instagram converteram 23% mais que WhatsApp este mês. Considere aumentar investimento em conteúdo Instagram.',
-        action: 'Ajustar estratégia de canais'
-      },
-      {
-        id: 'i4', type: 'opportunity', priority: 'medium',
-        title: 'Parceria com Influencer',
-        description: 'Juliana Vieira (120k seguidores) quer fazer unboxing nos Stories. Potencial de alcance: 85k+ pessoas.',
-        action: 'Aceitar parceria',
-        contactId: 'c7'
-      },
-      {
-        id: 'i5', type: 'pattern', priority: 'low',
-        title: 'Pico de engajamento às 19h',
-        description: 'Análise do heatmap mostra que o melhor horário para contato é entre 19h-20h em dias úteis.',
-        action: 'Agendar campanhas para este horário'
-      },
-      {
-        id: 'i6', type: 'reactivation', priority: 'medium',
-        title: 'Reativar lead perdido',
-        description: 'Thiago Barbosa saiu por preço há 18 dias. Enviar promoção de reativação com 15% de desconto.',
-        action: 'Enviar promoção',
-        contactId: 'c8'
-      }
-    ];
+    return [];
   },
 
   /* ── Neural Map Data ── */

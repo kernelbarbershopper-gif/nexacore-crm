@@ -24,11 +24,12 @@ function initTopMetrics() {
     const container = document.getElementById('topMetricsContainer');
     const { kpis, analytics } = NexaData;
 
+    const top = analytics.topMetrics || {};
     const metrics = [
         { label: 'Receita Total', value: NexaData.formatCurrency(kpis.revenue.value), trend: kpis.revenue.trend, period: kpis.revenue.period },
-        { label: 'Taxa de Conversão', value: analytics.topMetrics.conversionRate + '%', trend: 2.4, period: 'vs. mês passado' },
-        { label: 'Tempo Médio Resposta', value: analytics.topMetrics.avgResponseTime, trend: -18.0, period: 'melhoria' },
-        { label: 'Satisfação Cliente', value: analytics.topMetrics.customerSatisfaction + '%', trend: 5.1, period: 'vs. mês passado' }
+        { label: 'Taxa de Conversão', value: (top.conversionRate || 0) + '%', trend: 0, period: 'vs. mês passado' },
+        { label: 'Tempo Médio Resposta', value: top.avgResponseTime || '0min', trend: 0, period: 'melhoria' },
+        { label: 'Satisfação Cliente', value: (top.customerSatisfaction || 0) + '%', trend: 0, period: 'vs. mês passado' }
     ];
 
     container.innerHTML = metrics.map(m => {

@@ -1,38 +1,9 @@
 function initSettings() {
-    if (!NexaData.settings) initMockSettingsData();
     setupTabs();
     setupIntegrations();
     setupGhostWriterForm();
     renderAutomations();
     renderTeam();
-}
-
-function initMockSettingsData() {
-    window.NexaData = window.NexaData || {};
-    NexaData.settings = NexaData.settings || {};
-    
-    // Ghost Writer defaults
-    NexaData.settings.brandVoice = NexaData.settings.brandVoice || {
-        voiceDescription: "Sempre educado, persuasivo e focado em converter leads. Use linguagem moderna.",
-        tone: "professional",
-        creativity: 70
-    };
-
-    // Automations defaults
-    NexaData.settings.automations = NexaData.settings.automations || [
-        { id: 1, name: "Boas-vindas WhatsApp", description: "Envia mensagem automática para novos leads do WhatsApp.", active: true, icon: "zap" },
-        { id: 2, name: "Triagem Ghost Writer", description: "IA classifica o lead antes de passar para um humano.", active: true, icon: "cpu" },
-        { id: 3, name: "Follow-up 24h", description: "Mensagem de acompanhamento caso o lead não responda.", active: false, icon: "clock" },
-        { id: 4, name: "Distribuição de Leads", description: "Encaminha leads para a equipe via round-robin.", active: true, icon: "users" }
-    ];
-
-    // Team defaults
-    NexaData.settings.team = NexaData.settings.team || [
-        { id: 1, name: "Carlos Silva", email: "carlos@nexacore.com", role: "Admin", status: "Ativo" },
-        { id: 2, name: "Mariana Costa", email: "mariana@nexacore.com", role: "Vendedor", status: "Ativo" },
-        { id: 3, name: "João Pedro", email: "joao@nexacore.com", role: "Vendedor", status: "Ausente" },
-        { id: 4, name: "Ana Lima", email: "ana@nexacore.com", role: "Suporte", status: "Offline" }
-    ];
 }
 
 function setupTabs() {

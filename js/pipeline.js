@@ -1,19 +1,8 @@
 function initPipeline() {
     const pipelineBoard = document.getElementById('pipelineBoard');
 
-    // Ensure we have data
-    const stages = (window.NexaData && window.NexaData.pipelineStages) || [
-        { id: 'lead', name: 'Leads Novos' },
-        { id: 'contact', name: 'Contato Feito' },
-        { id: 'proposal', name: 'Proposta Enviada' },
-        { id: 'negotiation', name: 'Em Negociação' },
-        { id: 'closed_won', name: 'Fechado/Ganho' }
-    ];
-
-    let deals = (window.NexaData && window.NexaData.deals) || [
-        { id: 'd1', title: 'Projeto de Design', contact: 'Ana Silva', value: 5000, stage: 'lead', platform: 'whatsapp', aiReason: 'Alta probabilidade de conversão baseada no histórico', messages: [] },
-        { id: 'd2', title: 'Campanha Marketing', contact: 'Carlos Moura', value: 12000, stage: 'proposal', platform: 'instagram', aiReason: 'Cliente solicitou proposta detalhada', messages: [{role: 'user'}, {role: 'assistant'}] }
-    ];
+    const stages = (window.NexaData && window.NexaData.pipelineStages) || [];
+    let deals = (window.NexaData && window.NexaData.deals) || [];
 
     function formatCurrency(value) {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -65,7 +54,7 @@ function initPipeline() {
             const bodyEl = colEl.querySelector('.column-body');
             
             stageDeals.forEach(deal => {
-                const pulseScore = (window.NexaAI && window.NexaAI.calculatePulse) ? window.NexaAI.calculatePulse(deal) : Math.floor(Math.random() * 100);
+                const pulseScore = (window.NexaAI && window.NexaAI.calculatePulse) ? window.NexaAI.calculatePulse(deal) : 50;
                 const pulseColor = getPulseColor(pulseScore);
                 
                 const cardEl = document.createElement('div');
