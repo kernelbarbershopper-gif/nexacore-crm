@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convidar Membro — NexaCore CRM</title>
+  <meta name="description" content="Adicionar novo membro à equipe">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    .register-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+    }
+    .register-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .register-header {
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+    .register-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-lg);
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: white;
+      margin: 0 auto var(--space-4);
+    }
+    .register-title {
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    .register-subtitle {
+      color: var(--text-secondary);
+      font-size: var(--text-base);
+    }
+    .register-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .form-label {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .form-control {
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-size: var(--text-base);
+      transition: all var(--transition-fast);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-400);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .form-control::placeholder {
+      color: var(--text-tertiary);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+    .btn-register {
+      width: 100%;
+      padding: var(--space-3) var(--space-6);
+      font-size: var(--text-base);
+      font-weight: 600;
+      margin-top: var(--space-2);
+    }
+    .register-footer {
+      text-align: center;
+      margin-top: var(--space-6);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+    .register-footer a {
+      color: var(--primary-400);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .error-toast {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      display: none;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .error-toast.visible {
+      display: flex;
+    }
+    .success-toast {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      display: none;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .success-toast.visible {
+      display: flex;
+    }
+    .invite-info {
+      background: rgba(108, 92, 231, 0.1);
+      border: 1px solid rgba(108, 92, 231, 0.3);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    .invite-info strong {
+      color: var(--primary-300);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-ambient"></div>
+  
+  <div class="register-container">
+    <div class="register-card glass-card">
+      <div class="register-header">
+        <div class="register-logo" id="regLogo">N</div>
+        <h1 class="register-title" id="regTitle">Convidar Membro</h1>
+        <p class="register-subtitle" id="regSubtitle">Adicione um novo usuário à equipe do NexaCore</p>
+      </div>
+
+      <div class="invite-info">
+        <strong>Como funciona:</strong> O convidado receberá um email com link para definir a senha. A conta será criada com a função selecionada.
+      </div>
+
+      <div class="error-toast" id="errorToast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <span id="errorMessage"></span>
+      </div>
+
+      <div class="success-toast" id="successToast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="successMessage"></span>
+      </div>
+
+      <form class="register-form" id="inviteForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="inviteName">Nome Completo</label>
+            <input type="text" id="inviteName" class="form-control glass-input" placeholder="João Silva" autocomplete="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inviteEmail">Email</label>
+            <input type="email" id="inviteEmail" class="form-control glass-input" placeholder="joao@empresa.com" autocomplete="email" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="inviteRole">Função</label>
+            <select id="inviteRole" class="form-control glass-select">
+              <option value="agent">Agente de Vendas</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inviteRedirect">Redirecionar para</label>
+            <select id="inviteRedirect" class="form-control glass-select">
+              <option value="index.html">Dashboard</option>
+              <option value="contacts.html">Contatos</option>
+              <option value="pipeline.html">Pipeline</option>
+              <option value="conversations.html">Conversas</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-register" id="submitBtn">
+          <span class="btn-text">Enviar Convite</span>
+          <span class="btn-loading" style="display:none">Enviando...</span>
+        </button>
+      </form>
+
+      <div class="register-footer">
+        <a href="settings.html#team" id="backLink">&larr; Voltar para Equipe</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/brand-config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initNexaAuth();
+      
+      if (!NexaAuth.requireAdmin()) return;
+
+      BrandConfig.load();
+      BrandConfig.applyCSS();
+      document.getElementById('regLogo').textContent = BrandConfig.logoLetter;
+      document.getElementById('regTitle').textContent = `Convidar para ${BrandConfig.name}`;
+      document.getElementById('regSubtitle').textContent = `Adicione um novo membro à equipe do ${BrandConfig.company}`;
+
+      const form = document.getElementById('inviteForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = submitBtn.querySelector('.btn-text');
+      const btnLoading = submitBtn.querySelector('.btn-loading');
+      const errorToast = document.getElementById('errorToast');
+      const errorMessage = document.getElementById('errorMessage');
+      const successToast = document.getElementById('successToast');
+      const successMessage = document.getElementById('successMessage');
+
+      function showError(msg) {
+        errorMessage.textContent = msg;
+        errorToast.classList.add('visible');
+        successToast.classList.remove('visible');
+        setTimeout(() => errorToast.classList.remove('visible'), 5000);
+      }
+
+      function showSuccess(msg) {
+        successMessage.textContent = msg;
+        successToast.classList.add('visible');
+        errorToast.classList.remove('visible');
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('inviteName').value.trim();
+        const email = document.getElementById('inviteEmail').value.trim();
+        const role = document.getElementById('inviteRole').value;
+        const redirectTo = document.getElementById('inviteRedirect').value;
+
+        if (!name || !email) {
+          showError('Preencha todos os campos');
+          return;
+        }
+
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline';
+        submitBtn.disabled = true;
+
+        try {
+          const { data, error } = await _supabase.auth.admin.inviteUserByEmail(email, {
+            data: {
+              full_name: name,
+              role: role
+            },
+            redirectTo: `${window.location.origin}/${redirectTo}`
+          });
+
+          if (error) throw error;
+
+          showSuccess(`Convite enviado para ${email}!`);
+          form.reset();
+          
+          setTimeout(() => {
+            window.location.href = 'settings.html#team';
+          }, 2000);
+
+        } catch (err) {
+          showError(err.message || 'Erro ao enviar convite');
+        } finally {
+          btnText.style.display = 'inline';
+          btnLoading.style.display = 'none';
+          submitBtn.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

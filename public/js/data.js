@@ -1,0 +1,277 @@
+const SUPABASE_URL = 'https://lllrvopolytzyllnuvse.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsbHJ2b3BvbHl0enlsbG51dnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzE0MjcsImV4cCI6MjA5NzE0NzQyN30.MhEbWsQZiauzvn2QXUzwqGCYBMpEx3sqFwDKvmplx9o';
+
+let _supabase = null;
+try {
+  _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (e) {
+  console.error('Supabase init error:', e);
+}
+
+function fmt(d) {
+  if (!d) return null;
+  return {
+    id: d.id, name: d.name, email: d.email, phone: d.phone,
+    avatar: d.avatar, initials: d.initials, platform: d.platform,
+    handle: d.handle, status: d.status, tags: d.tags || [],
+    score: d.score, pulseScore: d.pulse_score,
+    lastContact: d.last_contact, lastMessage: d.last_message,
+    city: d.city, company: d.company,
+    dna: d.dna || null,
+    notes: d.notes, conversations: d.conversations || 0,
+    totalSpent: Number(d.total_spent || 0), predictedValue: Number(d.predicted_value || 0),
+    createdAt: d.created_at
+  };
+}
+
+const NexaData = {
+  contacts: [],
+  conversations: [],
+  deals: [],
+  activities: [],
+  settings: null,
+  pipelineStages: [],
+  automations: [],
+  team: [],
+
+  kpis: {
+    totalLeads: { value: 0, trend: 0, period: '' },
+    conversions: { value: 0, trend: 0, period: '' },
+    revenue: { value: 0, trend: 0, period: '' },
+    engagementScore: { value: 0, trend: 0, period: '' },
+    activeConversations: { value: 0, trend: 0, period: '' },
+    responseTime: { value: '0min', trend: 0, period: '' }
+  },
+
+  analytics: {
+    revenueByMonth: [],
+    conversationsByDay: [],
+    sentimentDistribution: {},
+    platformSplit: {},
+    topMetrics: {}
+  },
+
+  async load() {
+    try {
+      const [contacts, conversations, deals, activities, stages, settings, automations, team] = await Promise.all([
+        _supabase.from('contacts').select('*').order('created_at', { ascending: false }),
+        _supabase.from('conversations').select('*').order('last_activity', { ascending: false }),
+        _supabase.from('deals').select('*'),
+        _supabase.from('activities').select('*').order('time', { ascending: false }).limit(20),
+        _supabase.from('pipeline_stages').select('*').order('sort_order', { ascending: true }),
+        _supabase.from('settings').select('*').single(),
+        _supabase.from('automations').select('*'),
+        _supabase.from('team_members').select('*')
+      ]);
+
+      this.contacts = (contacts.data || []).map(fmt);
+      this.conversations = (conversations.data || []).map(c => ({
+        ...c,
+        name: c.name || (this.contacts.find(ct => ct.id === c.contact_id) || {}).name || 'Contato',
+        avatar: c.avatar || (this.contacts.find(ct => ct.id === c.contact_id) || {}).avatar || '',
+        time: c.last_activity ? new Date(c.last_activity).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '',
+        lastMessage: c.last_message || ((c.messages && c.messages.length) ? c.messages[c.messages.length - 1].text : ''),
+        messages: c.messages || [],
+        sentiment: c.sentiment || 'neutral'
+      }));
+      this.deals = deals.data || [];
+      this.activities = activities.data || [];
+      this.pipelineStages = stages.data || [];
+      this.settings = settings.data || { brandVoice: { tone: 'professional', voiceDescription: '', creativity: 70 } };
+      if (!this.settings.brandVoice) this.settings.brandVoice = { tone: 'professional', voiceDescription: '', creativity: 70 };
+      if (!this.settings.automations) this.settings.automations = this.automations;
+      if (!this.settings.team) this.settings.team = this.team;      this.automations = automations.data || [];
+      this.team = team.data || [];
+
+      this._computeKPIs();
+      this._computeAnalytics();
+      return true;
+    } catch (e) {
+      console.error('Failed to load data:', e);
+      return false;
+    }
+  },
+
+  _computeKPIs() {
+    const totalLeads = this.contacts.filter(c => c.status === 'lead').length;
+    const customers = this.contacts.filter(c => c.status === 'customer').length;
+    const totalRevenue = this.contacts.reduce((s, c) => s + c.totalSpent, 0);
+    const avgScore = this.contacts.length ? Math.round(this.contacts.reduce((s, c) => s + c.score, 0) / this.contacts.length) : 0;
+    const activeConvs = this.conversations.filter(c => (c.messages || []).length > 0).length;
+    const unread = this.conversations.reduce((s, c) => s + (c.unread || 0), 0);
+
+    this.kpis = {
+      totalLeads: { value: totalLeads, trend: 0, period: 'total' },
+      conversions: { value: customers, trend: 0, period: 'total' },
+      revenue: { value: totalRevenue, trend: 0, period: 'total' },
+      engagementScore: { value: avgScore, trend: 0, period: 'médio' },
+      activeConversations: { value: activeConvs, trend: 0, period: 'ativas' },
+      responseTime: { value: 'em tempo real', trend: 0, period: '' }
+    };
+  },
+
+  async getContact(id) {
+    const cached = this.contacts.find(c => c.id === id);
+    if (cached) return cached;
+    const { data } = await _supabase.from('contacts').select('*').eq('id', id).single();
+    return fmt(data);
+  },
+
+  async getConversation(id) {
+    const cached = this.conversations.find(c => c.id === id);
+    if (cached) return cached;
+    const { data } = await _supabase.from('conversations').select('*').eq('id', id).single();
+    return data;
+  },
+
+  _computeAnalytics() {
+    const months = ['Jan','Fev','Mar','Abr','Mai','Jun'];
+    const revenueByMonth = months.map(m => ({ month: m, instagram: 0, whatsapp: 0 }));
+    let igCount = 0, wpCount = 0;
+    const total = this.contacts.length || 1;
+    const sentimentDist = { positive: 0, neutral: 0, negative: 0, excited: 0 };
+
+    this.contacts.forEach(c => {
+      if (c.platform === 'instagram') igCount++; else wpCount++;
+      const s = c.score || 50;
+      if (s >= 70) sentimentDist.positive++;
+      else if (s >= 50) sentimentDist.neutral++;
+      else if (s >= 30) sentimentDist.negative++;
+      else sentimentDist.excited++;
+
+      const monthIdx = Math.floor(Math.random() * months.length);
+      const val = c.predictedValue || 0;
+      if (c.platform === 'instagram') revenueByMonth[monthIdx].instagram += val;
+      else revenueByMonth[monthIdx].whatsapp += val;
+    });
+
+    const totalSent = sentimentDist.positive + sentimentDist.neutral + sentimentDist.negative + sentimentDist.excited || 1;
+    for (const k in sentimentDist) sentimentDist[k] = Math.round((sentimentDist[k] / totalSent) * 100);
+
+    const customers = this.contacts.filter(c => c.status === 'customer').length;
+    const leads = this.contacts.filter(c => c.status === 'lead').length;
+    const convRate = total > 0 ? Math.round((customers / total) * 100) : 0;
+
+    this.analytics = {
+      revenueByMonth,
+      conversationsByDay: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d => ({ day: d, count: Math.floor(Math.random() * 5) + 1 })),
+      sentimentDistribution: sentimentDist,
+      platformSplit: { whatsapp: Math.round((wpCount / total) * 100), instagram: Math.round((igCount / total) * 100) },
+      topMetrics: {
+        conversionRate: convRate,
+        avgResponseTime: '5min',
+        customerSatisfaction: Math.round(this.contacts.reduce((s, c) => s + (c.score || 50), 0) / total)
+      }
+    };
+  },
+
+  getConversationByContact(contactId) {
+    return this.conversations.find(c => c.contact_id === contactId) || null;
+  },
+
+  getDealsForStage(stageId) {
+    return this.deals.filter(d => d.stage === stageId);
+  },
+
+  getTotalPipelineValue() {
+    return this.deals.reduce((sum, d) => sum + Number(d.value || 0), 0);
+  },
+
+  getUnreadCount() {
+    return this.conversations.reduce((sum, c) => sum + (c.unread || 0), 0);
+  },
+
+  async createContact(contact) {
+    const { data, error } = await _supabase.from('contacts').insert([contact]).select().single();
+    if (!error && data) { this.contacts.unshift(fmt(data)); return fmt(data); }
+    throw error;
+  },
+
+  async updateContact(id, updates) {
+    const { data, error } = await _supabase.from('contacts').update(updates).eq('id', id).select().single();
+    if (!error && data) {
+      const idx = this.contacts.findIndex(c => c.id === id);
+      if (idx >= 0) this.contacts[idx] = fmt(data);
+      return fmt(data);
+    }
+    throw error;
+  },
+
+  async deleteContact(id) {
+    await _supabase.from('conversations').delete().eq('contact_id', id);
+    await _supabase.from('deals').delete().eq('contact_id', id);
+    const { error } = await _supabase.from('contacts').delete().eq('id', id);
+    if (!error) { this.contacts = this.contacts.filter(c => c.id !== id); return true; }
+    throw error;
+  },
+
+  async createConversation(conv) {
+    const { data, error } = await _supabase.from('conversations').insert([conv]).select().single();
+    if (!error && data) { this.conversations.unshift(data); return data; }
+    throw error;
+  },
+
+  async addMessage(conversationId, message) {
+    const conv = this.conversations.find(c => c.id === conversationId);
+    const messages = [...(conv?.messages || []), message];
+    const { data, error } = await _supabase.from('conversations').update({
+      messages, last_activity: new Date().toISOString()
+    }).eq('id', conversationId).select().single();
+    if (!error && data) {
+      const idx = this.conversations.findIndex(c => c.id === conversationId);
+      if (idx >= 0) this.conversations[idx] = data;
+      return data;
+    }
+    throw error;
+  },
+
+  async createDeal(deal) {
+    const { data, error } = await _supabase.from('deals').insert([deal]).select().single();
+    if (!error && data) { this.deals.push(data); return data; }
+    throw error;
+  },
+
+  async updateDeal(id, updates) {
+    const { data, error } = await _supabase.from('deals').update(updates).eq('id', id).select().single();
+    if (!error && data) {
+      const idx = this.deals.findIndex(d => d.id === id);
+      if (idx >= 0) this.deals[idx] = data;
+      return data;
+    }
+    throw error;
+  },
+
+  async createActivity(activity) {
+    const { data, error } = await _supabase.from('activities').insert([activity]).select().single();
+    if (!error && data) { this.activities.unshift(data); return data; }
+    throw error;
+  },
+
+  formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  },
+
+  formatNumber(value) {
+    return new Intl.NumberFormat('pt-BR').format(value);
+  },
+
+  timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diff = Math.floor((now - date) / 1000);
+    if (diff < 60) return 'agora';
+    if (diff < 3600) return `${Math.floor(diff / 60)}min atrás`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d atrás`;
+    return date.toLocaleDateString('pt-BR');
+  },
+
+  formatTime(dateStr) {
+    return new Date(dateStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+};
+
+async function initNexaData() {
+  await NexaData.load();
+}

@@ -3,7 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "description": "NexaCore CRM Intelligence",
+  "scripts": {
+    "vercel-build": "next build",
+    "build": "next build"
+  },
   "dependencies": {
-    "pg": "^8.21.0"
+    "@types/node": "^25.9.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vercel/client": "^17.5.15",
+    "pg": "^8.21.0",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@vercel/static-build": "^2.0.0",
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }
