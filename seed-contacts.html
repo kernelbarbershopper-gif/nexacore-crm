@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Seed — Montana Businesses</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f0f1a; color: #e8ecf4; padding: 2rem; max-width: 800px; margin: 0 auto; }
+    h1 { color: #8b7cf6; }
+    pre { background: #1a1a2e; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+    .ok { color: #00d4aa; }
+    .err { color: #ef4444; }
+    button { background: #6c5ce7; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #8b7cf6; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>🌾 Seed: Montana Businesses</h1>
+  <p>Insere 19 contatos de empresas recém-abertas em Montana no CRM.</p>
+  <button id="seedBtn">▶ Inserir Contatos</button>
+  <div class="status" id="status"></div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://lllrvopolytzyllnuvse.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsbHJ2b3BvbHl0enlsbG51dnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzE0MjcsImV4cCI6MjA5NzE0NzQyN30.MhEbWsQZiauzvn2QXUzwqGCYBMpEx3sqFwDKvmplx9o';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const contacts = [
+      { name: 'Snug & Thistle Boutique', initials: 'SB', platform: 'instagram', handle: '@thesnugandthistle', status: 'lead', tags: ['boutique', 'moda-feminina', 'billings'], score: 70, city: 'Billings', company: 'Snug & Thistle Boutique', notes: 'Boutique feminina com programa Youth Fashion Board. Aberta 03/jun/2026. Proprietária: Wendy Samson. End: 3178 Gabel Rd, Billings, MT.' },
+      { name: 'Heelside Boards', initials: 'HB', platform: 'instagram', handle: '@heelsideboards', status: 'lead', tags: ['esportes-aquaticos', 'wakeboard', 'kitesurf', 'missoula'], score: 75, city: 'Missoula', company: 'Heelside Boards', notes: 'Loja de esportes aquáticos. Única em MT a vender Cabrinha Kites. Soft opening 23/jun, Grand opening 26/jun/2026. Proprietário: Scott Elliott. Paxson Plaza, Missoula.' },
+      { name: "Grannie's Fabric & Crafts", initials: 'GF', platform: 'instagram', handle: '@granniesfabric', status: 'lead', tags: ['artesanato', 'tecidos', 'butte'], score: 50, city: 'Butte', company: "Grannie's Fabric & Crafts", notes: 'Tecidos orgânicos,印花 indianos, kits DIY. Aberta 02/jun/2026. End: 9 S Montana St, Butte, MT.' },
+      { name: 'Bricks & Minifigs Missoula', initials: 'BM', platform: 'instagram', handle: '@bricksandminifigs_missoula', status: 'lead', tags: ['LEGO', 'brinquedos', 'missoula'], score: 65, city: 'Missoula', company: 'Bricks & Minifigs', notes: 'Loja oficial LEGO: compra, venda e troca. Grand opening 30/mai/2026. End: 1525 S Russell St, Missoula, MT.' },
+      { name: 'Chick-fil-A Butte', initials: 'CF', platform: 'instagram', handle: '@chickfila', status: 'lead', tags: ['fast-food', 'butte'], score: 85, city: 'Butte', company: 'Chick-fil-A', notes: 'Nova unidade em Butte. Cornerstone Plaza. 110 empregos. Aberta 11/jun/2026. Owner: Calder Prevatt.' },
+      { name: 'Pine & Pour', initials: 'PP', platform: 'instagram', handle: '@pineandpour', status: 'lead', tags: ['cafe', 'presentes', 'noxon'], score: 60, city: 'Noxon', company: 'Pine & Pour', phone: '406-407-2882', notes: 'Café e loja de presentes. Drive-up. End: 1402 Highway 200, Noxon, MT. Proprietária: Annie Manning.' },
+      { name: 'Northern Lights Design', initials: 'ND', platform: 'instagram', handle: '@northernlightsdesign', status: 'lead', tags: ['design-interiores', 'pisos', 'kalispell'], score: 70, city: 'Kalispell', company: 'Northern Lights Design', email: 'sales@northernlightsdesign.com', phone: '406-314-8713', notes: 'Showroom de pisos, azulejos, pedras. Grand opening 11/mai/2026. End: 141 Alden Loop, Kalispell, MT. Proprietário: Will Dillard.' },
+      { name: 'Flat Creek Mercantile', initials: 'FM', platform: 'instagram', handle: '@flatcreekmercantile', status: 'lead', tags: ['conveniencia', 'posto-gasolina', 'wolf-creek'], score: 55, city: 'Wolf Creek', company: 'Flat Creek Mercantile', notes: 'Posto + conveniência 4.000 sq ft. Bowman\'s Corner. Grand opening 04/jun/2026. Proprietários: Dan/Tina Freeman + Christi/Jason Levine.' },
+      { name: 'Front & Main Boutique', initials: 'FM', platform: 'instagram', handle: '@frontandmainboutique', status: 'lead', tags: ['boutique', 'moda', 'conrad'], score: 55, city: 'Conrad', company: 'Front & Main Boutique', notes: 'Boutique no Kronebusch Electric bldg. Aberta mar/2026. Proprietária: Heather Carpenter.' },
+      { name: 'GRAE + CO', initials: 'GC', platform: 'instagram', handle: '@graeandco', status: 'lead', tags: ['boutique', 'moda', 'great-falls'], score: 65, city: 'Great Falls', company: 'GRAE + CO', phone: '406-868-8578', notes: 'Boutique moderna. End: 427 Central Ave, Great Falls, MT. Proprietária: Erica Ferrin.' },
+      { name: 'The Montana Shepherd', initials: 'MS', platform: 'instagram', handle: '@themontanashepherd', status: 'lead', tags: ['skincare', 'artesanal', 'natural'], score: 60, city: 'Montana', company: 'The Montana Shepherd', notes: 'Skincare artesanal. Fundado 2025. Proprietária: Hillary.' },
+      { name: 'Moka Boutique', initials: 'MB', platform: 'instagram', handle: '@mokamontana', status: 'lead', tags: ['boutique', 'moda', 'bozeman'], score: 75, city: 'Bozeman', company: 'Moka Boutique', phone: '406-582-0079', notes: '25+ anos. Nova sede: 122 East Main St, Bozeman, MT. Grand opening abr/2026.' },
+      { name: '406 Worx Store', initials: '4W', platform: 'instagram', handle: '@406worx', status: 'lead', tags: ['artesanato', 'presentes', 'kalispell'], score: 50, city: 'Kalispell', company: '406 Worx Store', notes: 'Roupas personalizadas, decoração. Kalispell Center Mall, 20 N Main St, Kalispell, MT.' },
+      { name: 'Stacks Clothing Co.', initials: 'SC', platform: 'instagram', handle: '@stacksclothingcompany', status: 'lead', tags: ['moda-western', 'east-helena'], score: 70, city: 'East Helena', company: 'Stacks Clothing Co.', phone: '406-502-1686', notes: 'Eleita Best Clothing Store in Helena. End: 7 W Main St, East Helena, MT. Proprietário: Lanny Wock.' },
+      { name: 'Rustic Mug Boutique', initials: 'RM', platform: 'instagram', handle: '@rusticmugmt', status: 'lead', tags: ['boutique', 'presentes', 'fort-benton'], score: 55, city: 'Fort Benton', company: 'Rustic Mug Boutique', phone: '406-622-6495', notes: 'Mãe-filha. End: 1714 Front St, Fort Benton, MT.' },
+      { name: 'Montana Girls Cowgirl Feathers', initials: 'MF', platform: 'instagram', handle: '@mtgirlscowgirl_feathers', status: 'lead', tags: ['acessorios', 'penas', 'eventos', 'kalispell'], score: 50, city: 'Kalispell', company: 'Montana Girls Cowgirl Feathers', email: 'mtgirlscowgirlfeathers@gmail.com', phone: '406-249-3559', notes: 'Acessórios de penas. Dupla mãe-filha. Fundada 2024.' },
+      { name: 'Rowdy Rambler Boutique', initials: 'RR', platform: 'instagram', handle: '@rowdyramblerboutique', status: 'lead', tags: ['boutique', 'online'], score: 45, city: 'Montana', company: 'Rowdy Rambler Boutique', email: 'rowdyramblerboutique@gmail.com', notes: 'Jovem empreendedora (18 anos). Loja online.' },
+      { name: "J'z Fashion Threadz", initials: 'JF', platform: 'instagram', handle: '@jzfashionthreadz', status: 'lead', tags: ['moda-feminina', 'sidney'], score: 45, city: 'Sidney', company: "J'z Fashion Threadz", phone: '406-433-5050', notes: 'Loja de roupas. End: 113 E Main St, Sidney, MT.' },
+      { name: 'IND HEMP, LLC', initials: 'IH', platform: 'instagram', handle: '@indhempllc', status: 'lead', tags: ['hemp', 'fort-benton'], score: 50, city: 'Fort Benton', company: 'IND HEMP, LLC', phone: '406-622-5680', notes: 'Produtos de cânhamo. End: 1210 22nd St, Fort Benton, MT.' }
+    ];
+
+    const statusEl = document.getElementById('status');
+    const btn = document.getElementById('seedBtn');
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = 'Inserindo...';
+      statusEl.innerHTML = '';
+
+      for (const c of contacts) {
+        const dna = {
+          frequency: Math.floor(Math.random() * 60) + 20,
+          emotion: Math.floor(Math.random() * 60) + 20,
+          response: Math.floor(Math.random() * 60) + 20,
+          interest: Math.floor(Math.random() * 60) + 20,
+          loyalty: Math.floor(Math.random() * 60) + 20,
+          influence: Math.floor(Math.random() * 60) + 20
+        };
+
+        const { data, error } = await supabase.from('contacts').insert({
+          name: c.name, email: c.email || null, phone: c.phone || null,
+          initials: c.initials, platform: c.platform, handle: c.handle,
+          status: c.status, tags: c.tags, score: c.score,
+          city: c.city, company: c.company, dna,
+          notes: c.notes, conversations: 0,
+          total_spent: 0, predicted_value: c.score * 100
+        }).select().single();
+
+        if (error) {
+          statusEl.innerHTML += `<div class="err">✗ ${c.name}: ${error.message}</div>`;
+        } else {
+          statusEl.innerHTML += `<div class="ok">✓ ${c.name}</div>`;
+        }
+      }
+
+      statusEl.innerHTML += `<br><strong>→ ${contacts.length} contatos processados.</strong>`;
+      btn.textContent = '✅ Concluído';
+    });
+  </script>
+</body>
+</html>
