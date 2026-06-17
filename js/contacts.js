@@ -249,4 +249,122 @@ function renderContactsModule() {
   }
 
   renderContacts();
+
+  // --- CSV Import Logic ---
+  const csvInput = document.getElementById('csvImport');
+  const importBtn = document.querySelector('.import-btn');
+
+  if (importBtn && csvInput) {
+    importBtn.addEventListener('click', () => csvInput.click());
+    csvInput.addEventListener('change', handleCSVImport);
+  }
+
+  async function handleCSVImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) {
+      alert('CSV vazio ou apenas cabeçalho');
+      return;
+    }
+
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const required = ['name', 'phone', 'platform'];
+    const missing = required.filter(r => !headers.includes(r));
+    if (missing.length) {
+      alert(`Colunas obrigatórias faltando: ${missing.join(', ')}`);
+      return;
+    }
+
+    const contacts = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = parseCSVLine(lines[i]);
+      if (values.length < headers.length) continue;
+
+      const contact = {};
+      headers.forEach((h, idx) => contact[h] = values[idx]?.trim() || '');
+
+      if (!contact.name || !contact.phone) continue;
+
+      contact.platform = contact.platform || 'whatsapp';
+      if (!['whatsapp', 'instagram'].includes(contact.platform)) {
+        contact.platform = 'whatsapp';
+      }
+
+      contact.handle = contact.handle || contact.phone.replace(/\D/g, '');
+      contact.status = contact.status || 'lead';
+      contact.tags = contact.tags ? contact.tags.split(';').map(t => t.trim()) : [];
+      contact.email = contact.email || '';
+      contact.city = contact.city || '';
+      contact.company = contact.company || '';
+      contact.notes = contact.notes || '';
+      contact.initials = contact.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      contact.score = Math.floor(Math.random() * 40) + 60;
+      contact.predictedValue = Math.floor(Math.random() * 500000) + 100000;
+      contact.totalSpent = 0;
+      contact.conversations = 0;
+      contact.createdAt = new Date().toISOString();
+      contact.dna = {
+        frequency: Math.floor(Math.random() * 40) + 40,
+        emotion: Math.floor(Math.random() * 40) + 40,
+        response: Math.floor(Math.random() * 40) + 40,
+        interest: Math.floor(Math.random() * 40) + 40,
+        loyalty: Math.floor(Math.random() * 40) + 40,
+        influence: Math.floor(Math.random() * 40) + 40
+      };
+
+      contacts.push(contact);
+    }
+
+    if (contacts.length === 0) {
+      alert('Nenhum contato válido encontrado');
+      return;
+    }
+
+    if (!confirm(`Importar ${contacts.length} contatos?`)) return;
+
+    let success = 0;
+    for (const c of contacts) {
+      try {
+        const { error } = await window.NexaSupabase.from('contacts').insert(c);
+        if (!error) success++;
+      } catch (err) {
+        console.error('Erro ao inserir:', c.name, err);
+      }
+    }
+
+    alert(`${success}/${contacts.length} contatos importados com sucesso!`);
+    csvInput.value = '';
+    
+    if (window.NexaData && window.NexaData.loadContacts) {
+      await window.NexaData.loadContacts();
+    }
+    renderContacts();
+  }
+
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current);
+    return result;
+  }
 }
