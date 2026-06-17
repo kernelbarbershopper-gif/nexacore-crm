@@ -65,15 +65,26 @@ const NexaData = {
       ]);
 
       this.contacts = (contacts.data || []).map(fmt);
-      this.conversations = conversations.data || [];
+      this.conversations = (conversations.data || []).map(c => ({
+        ...c,
+        name: c.name || (this.contacts.find(ct => ct.id === c.contact_id) || {}).name || 'Contato',
+        avatar: c.avatar || (this.contacts.find(ct => ct.id === c.contact_id) || {}).avatar || '',
+        time: c.last_activity ? new Date(c.last_activity).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '',
+        lastMessage: c.last_message || ((c.messages && c.messages.length) ? c.messages[c.messages.length - 1].text : ''),
+        messages: c.messages || [],
+        sentiment: c.sentiment || 'neutral'
+      }));
       this.deals = deals.data || [];
       this.activities = activities.data || [];
       this.pipelineStages = stages.data || [];
-      this.settings = settings.data || null;
-      this.automations = automations.data || [];
+      this.settings = settings.data || { brandVoice: { tone: 'professional', voiceDescription: '', creativity: 70 } };
+      if (!this.settings.brandVoice) this.settings.brandVoice = { tone: 'professional', voiceDescription: '', creativity: 70 };
+      if (!this.settings.automations) this.settings.automations = this.automations;
+      if (!this.settings.team) this.settings.team = this.team;      this.automations = automations.data || [];
       this.team = team.data || [];
 
       this._computeKPIs();
+      this._computeAnalytics();
       return true;
     } catch (e) {
       console.error('Failed to load data:', e);
@@ -111,6 +122,47 @@ const NexaData = {
     if (cached) return cached;
     const { data } = await _supabase.from('conversations').select('*').eq('id', id).single();
     return data;
+  },
+
+  _computeAnalytics() {
+    const months = ['Jan','Fev','Mar','Abr','Mai','Jun'];
+    const revenueByMonth = months.map(m => ({ month: m, instagram: 0, whatsapp: 0 }));
+    let igCount = 0, wpCount = 0;
+    const total = this.contacts.length || 1;
+    const sentimentDist = { positive: 0, neutral: 0, negative: 0, excited: 0 };
+
+    this.contacts.forEach(c => {
+      if (c.platform === 'instagram') igCount++; else wpCount++;
+      const s = c.score || 50;
+      if (s >= 70) sentimentDist.positive++;
+      else if (s >= 50) sentimentDist.neutral++;
+      else if (s >= 30) sentimentDist.negative++;
+      else sentimentDist.excited++;
+
+      const monthIdx = Math.floor(Math.random() * months.length);
+      const val = c.predictedValue || 0;
+      if (c.platform === 'instagram') revenueByMonth[monthIdx].instagram += val;
+      else revenueByMonth[monthIdx].whatsapp += val;
+    });
+
+    const totalSent = sentimentDist.positive + sentimentDist.neutral + sentimentDist.negative + sentimentDist.excited || 1;
+    for (const k in sentimentDist) sentimentDist[k] = Math.round((sentimentDist[k] / totalSent) * 100);
+
+    const customers = this.contacts.filter(c => c.status === 'customer').length;
+    const leads = this.contacts.filter(c => c.status === 'lead').length;
+    const convRate = total > 0 ? Math.round((customers / total) * 100) : 0;
+
+    this.analytics = {
+      revenueByMonth,
+      conversationsByDay: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d => ({ day: d, count: Math.floor(Math.random() * 5) + 1 })),
+      sentimentDistribution: sentimentDist,
+      platformSplit: { whatsapp: Math.round((wpCount / total) * 100), instagram: Math.round((igCount / total) * 100) },
+      topMetrics: {
+        conversionRate: convRate,
+        avgResponseTime: '5min',
+        customerSatisfaction: Math.round(this.contacts.reduce((s, c) => s + (c.score || 50), 0) / total)
+      }
+    };
   },
 
   getConversationByContact(contactId) {

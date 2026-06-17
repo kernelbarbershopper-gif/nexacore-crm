@@ -323,4 +323,36 @@
         width: 100%;
         max-width: 250px;
     }
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-3);
+    }
+    .chart-card {
+        padding: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-2);
+    }
+    .metric-card {
+        padding: var(--space-2);
+    }
+    .metric-value {
+        font-size: var(--text-lg);
+    }
+    .chart-card {
+        padding: var(--space-2);
+    }
+    .chart-wrapper {
+        height: 200px;
+    }
+    .platform-comparison {
+        padding: var(--space-2);
+    }
+    .insights-list {
+        padding: var(--space-2);
+    }
 }

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   NexaCore CRM — Sidebar Navigation
+   CRM Intelligence — Sidebar Navigation
    ═══════════════════════════════════════════════════════════════ */
 
 const NexaSidebar = {
@@ -19,10 +19,10 @@ const NexaSidebar = {
     sidebar.innerHTML = `
       <!-- Brand -->
       <div class="sidebar-brand">
-        <div class="sidebar-brand-logo">N</div>
+        <div class="sidebar-brand-logo">${BrandConfig.logoLetter}</div>
         <div class="sidebar-brand-text">
-          <div class="sidebar-brand-name">NexaCore</div>
-          <div class="sidebar-brand-tag">CRM Intelligence</div>
+          <div class="sidebar-brand-name">${BrandConfig.name}</div>
+          <div class="sidebar-brand-tag">${BrandConfig.tagline}</div>
         </div>
       </div>
 
@@ -69,10 +69,10 @@ const NexaSidebar = {
       <!-- Footer -->
       <div class="sidebar-footer">
         <div class="sidebar-user">
-          <div class="avatar avatar-sm" style="background: var(--gradient-primary);">AN</div>
+          <div class="avatar avatar-sm" style="background: var(--gradient-primary);">AD</div>
           <div class="sidebar-brand-text">
-            <div style="font-size: var(--text-sm); font-weight: 500;">Admin NexaCore</div>
-            <div style="font-size: var(--text-xs); color: var(--text-tertiary);">admin@nexacore.com</div>
+            <div style="font-size: var(--text-sm); font-weight: 500;">Admin ${BrandConfig.name}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-tertiary);">${BrandConfig.email}</div>
           </div>
         </div>
       </div>

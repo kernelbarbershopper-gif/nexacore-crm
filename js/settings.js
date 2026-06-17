@@ -2,6 +2,7 @@ function initSettings() {
     setupTabs();
     setupIntegrations();
     setupGhostWriterForm();
+    setupBrandingForm();
     renderAutomations();
     renderTeam();
 }
@@ -65,10 +66,11 @@ function setupGhostWriterForm() {
         apiKeyInput.value = localStorage.getItem('nvidiaApiKey');
     }
 
-    if(NexaData.settings.brandVoice) {
-        voiceInput.value = NexaData.settings.brandVoice.voiceDescription || '';
-        toneSelect.value = NexaData.settings.brandVoice.tone || 'professional';
-        creativityInput.value = NexaData.settings.brandVoice.creativity || 70;
+    const brandVoice = NexaData.settings && NexaData.settings.brandVoice;
+    if(brandVoice) {
+        voiceInput.value = brandVoice.voiceDescription || '';
+        toneSelect.value = brandVoice.tone || 'professional';
+        creativityInput.value = brandVoice.creativity || 70;
     }
 
     form.addEventListener('submit', (e) => {
@@ -89,21 +91,98 @@ function setupGhostWriterForm() {
     });
 }
 
+function setupBrandingForm() {
+    const form = document.getElementById('branding-form');
+    if (!form) return;
+
+    const nameInput = document.getElementById('brand-name');
+    const logoLetterInput = document.getElementById('brand-logo-letter');
+    const taglineInput = document.getElementById('brand-tagline');
+    const companyInput = document.getElementById('brand-company');
+    const emailInput = document.getElementById('brand-email');
+    const colorPrimaryInput = document.getElementById('brand-primary-color');
+    const colorPrimaryText = document.getElementById('brand-primary-color-text');
+    const color400Input = document.getElementById('brand-primary-400');
+    const color400Text = document.getElementById('brand-primary-400-text');
+
+    function syncColor(picker, text) {
+        picker.addEventListener('input', () => { text.value = picker.value; });
+        text.addEventListener('input', () => { if (/^#[0-9a-f]{6}$/i.test(text.value)) picker.value = text.value; });
+    }
+
+    function loadBrandIntoForm() {
+        nameInput.value = BrandConfig.name;
+        logoLetterInput.value = BrandConfig.logoLetter;
+        taglineInput.value = BrandConfig.tagline;
+        companyInput.value = BrandConfig.company;
+        emailInput.value = BrandConfig.email;
+        colorPrimaryInput.value = BrandConfig.primaryColor;
+        colorPrimaryText.value = BrandConfig.primaryColor;
+        color400Input.value = BrandConfig.primaryColor400;
+        color400Text.value = BrandConfig.primaryColor400;
+    }
+
+    syncColor(colorPrimaryInput, colorPrimaryText);
+    syncColor(color400Input, color400Text);
+
+    loadBrandIntoForm();
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        BrandConfig.name = nameInput.value.trim();
+        BrandConfig.logoLetter = logoLetterInput.value.trim().charAt(0).toUpperCase();
+        BrandConfig.tagline = taglineInput.value.trim();
+        BrandConfig.company = companyInput.value.trim();
+        BrandConfig.email = emailInput.value.trim();
+        BrandConfig.primaryColor = colorPrimaryInput.value;
+        BrandConfig.primaryColor400 = color400Input.value;
+        BrandConfig.primaryColor600 = adjustColor(colorPrimaryInput.value, -20);
+        BrandConfig.primaryGlow = hexToRgba(colorPrimaryInput.value, 0.25);
+        BrandConfig.gradientPrimary = `linear-gradient(135deg, ${colorPrimaryInput.value}, ${color400Input.value})`;
+
+        BrandConfig.save();
+        BrandConfig.applyCSS();
+
+        // Re-render sidebar with new brand
+        NexaSidebar.render();
+
+        showToast('Identidade visual salva e aplicada!');
+    });
+}
+
 function renderAutomations() {
     const container = document.getElementById('automations-container');
     if(!container) return;
 
     container.innerHTML = '';
 
-    NexaData.settings.automations.forEach(auto => {
+    const automations = NexaData.settings.automations || NexaData.automations || [];
+
+    if (automations.length === 0) {
+        container.innerHTML = '<div style="padding:1rem;color:var(--text-secondary);text-align:center">Nenhuma automação configurada.</div>';
+        return;
+    }
+
+    const defaultIcons = { 'novo_lead': 'zap', 'sem_resposta_48h': 'clock', 'pulse_score_baixo': 'cpu', 'conversa_qualificada': 'zap' };
+    const defaultDescriptions = {
+        'novo_lead': 'Envia mensagem automática quando um novo lead entra',
+        'sem_resposta_48h': 'Envia follow-up após 48h sem resposta',
+        'pulse_score_baixo': 'Notifica a equipe quando o pulse score baixa',
+        'conversa_qualificada': 'Move o lead de estágio no pipeline automaticamente'
+    };
+
+    automations.forEach(auto => {
         const item = document.createElement('div');
         item.className = 'automation-item';
         
-        // Simple SVG mapping
+        const icon = auto.icon || defaultIcons[auto.trigger] || 'zap';
+        const desc = auto.description || auto.action || defaultDescriptions[auto.trigger] || '';
+        
         let svg = '';
-        if(auto.icon === 'zap') svg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>';
-        else if(auto.icon === 'cpu') svg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>';
-        else if(auto.icon === 'clock') svg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
+        if(icon === 'zap') svg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>';
+        else if(icon === 'cpu') svg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>';
+        else if(icon === 'clock') svg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
         else svg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>';
 
         item.innerHTML = `
@@ -111,11 +190,11 @@ function renderAutomations() {
                 <div class="automation-icon">${svg}</div>
                 <div class="automation-text">
                     <h4>${auto.name}</h4>
-                    <p>${auto.description}</p>
+                    <p>${desc}</p>
                 </div>
             </div>
             <label class="toggle-switch">
-                <input type="checkbox" id="auto-${auto.id}" ${auto.active ? 'checked' : ''}>
+                <input type="checkbox" id="auto-${auto.id || Math.random().toString(36).slice(2)}" ${auto.active ? 'checked' : ''}>
                 <span class="slider"></span>
             </label>
         `;
@@ -136,15 +215,24 @@ function renderTeam() {
 
     tbody.innerHTML = '';
 
-    NexaData.settings.team.forEach(member => {
-        const tr = document.createElement('tr');
-        const initials = member.name.split(' ').map(n => n[0]).join('').substring(0, 2);
-        
-        let statusClass = 'disconnected'; // default mute
-        if(member.status === 'Ativo') statusClass = 'connected';
-        if(member.status === 'Ausente') statusClass = 'text-warning'; // optional
+    const members = NexaData.settings.team || NexaData.team || [];
 
-        const roleClass = member.role === 'Admin' ? 'admin' : '';
+    if (members.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--text-secondary)">Nenhum membro na equipe.</td></tr>';
+        return;
+    }
+
+    members.forEach(member => {
+        const tr = document.createElement('tr');
+        const initials = (member.initials || member.name.split(' ').map(n => n[0]).join('').substring(0, 2));
+        const status = member.status || (member.active ? 'Ativo' : 'Inativo');
+
+        let statusClass = 'disconnected';
+        if(status === 'Ativo') statusClass = 'connected';
+        if(status === 'Ausente') statusClass = 'text-warning';
+
+        const role = member.role || 'agent';
+        const roleClass = role === 'admin' || role === 'Admin' ? 'admin' : '';
 
         tr.innerHTML = `
             <td>
@@ -153,9 +241,9 @@ function renderTeam() {
                     <span>${member.name}</span>
                 </div>
             </td>
-            <td>${member.email}</td>
-            <td><span class="role-badge ${roleClass}">${member.role}</span></td>
-            <td><span class="status ${statusClass}"><span class="indicator"></span>${member.status}</span></td>
+            <td>${member.email || '--'}</td>
+            <td><span class="role-badge ${roleClass}">${role}</span></td>
+            <td><span class="status ${statusClass}"><span class="indicator"></span>${status}</span></td>
             <td>
                 <button class="action-btn" title="Editar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>

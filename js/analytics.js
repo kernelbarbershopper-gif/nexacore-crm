@@ -61,17 +61,21 @@ function initInsights() {
     container.innerHTML = insights.map(i => {
         let icon = '💡';
         if (i.type === 'opportunity') icon = '🎯';
-        else if (i.type === 'risk') icon = '⚠️';
-        else if (i.type === 'trend') icon = '📈';
+        else if (i.type === 'risk' || i.type === 'warning') icon = '⚠️';
+        else if (i.type === 'trend' || i.type === 'pattern') icon = '📈';
+        else if (i.type === 'concentration') icon = '📍';
+        else if (i.type === 'revenue') icon = '💰';
+
+        const priority = i.severity === 'positive' ? 'high' : i.severity === 'warning' ? 'medium' : 'low';
 
         return `
-        <div class="insight-card priority-${i.priority}">
+        <div class="insight-card priority-${priority}">
             <div class="insight-header">
                 <span class="insight-title">${icon} ${i.title}</span>
             </div>
-            <div class="insight-desc">${i.description}</div>
+            <div class="insight-desc">${i.text || i.description || ''}</div>
             <button class="insight-action">
-                ${i.action} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Ver detalhes <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
         </div>
         `;
@@ -123,13 +127,22 @@ function drawRevenueChart() {
     const { ctx, width, height } = chart;
     const data = NexaData.analytics.revenueByMonth;
     
+    if (!data || data.length === 0) {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sem dados de receita', width / 2, height / 2);
+        return;
+    }
+    
     ctx.clearRect(0, 0, width, height);
     
     const padding = { top: 20, right: 20, bottom: 30, left: 50 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
     
-    const maxVal = Math.max(...data.map(d => d.instagram + d.whatsapp)) * 1.1;
+    const maxVal = Math.max(1, Math.max(...data.map(d => d.instagram + d.whatsapp)) * 1.1);
     
     // Draw grid
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
@@ -211,13 +224,22 @@ function drawConversationsChart() {
     const { ctx, width, height } = chart;
     const data = NexaData.analytics.conversationsByDay;
     
+    if (!data || data.length === 0) {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sem dados de conversas', width / 2, height / 2);
+        return;
+    }
+    
     ctx.clearRect(0, 0, width, height);
     
     const padding = { top: 20, right: 20, bottom: 30, left: 30 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
     
-    const maxVal = Math.max(...data.map(d => d.count)) * 1.2;
+    const maxVal = Math.max(1, Math.max(...data.map(d => d.count)) * 1.2);
     const barWidth = Math.min(24, chartWidth / data.length - 8);
     const stepX = chartWidth / data.length;
     
@@ -254,6 +276,15 @@ function drawSentimentChart() {
     const { ctx, width, height } = chart;
     const dataObj = NexaData.analytics.sentimentDistribution;
     
+    if (!dataObj || Object.keys(dataObj).length === 0) {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sem dados de sentimento', width / 2, height / 2);
+        return;
+    }
+    
     const colors = {
         positive: '#00d4aa',
         neutral: '#60a5fa',
@@ -269,7 +300,7 @@ function drawSentimentChart() {
     };
     
     const entries = Object.entries(dataObj);
-    const total = entries.reduce((sum, [_, val]) => sum + val, 0);
+    const total = entries.reduce((sum, [_, val]) => sum + val, 0) || 1;
     
     ctx.clearRect(0, 0, width, height);
     

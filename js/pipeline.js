@@ -39,7 +39,7 @@ function initPipeline() {
             colEl.innerHTML = `
                 <div class="column-header">
                     <div class="column-title-row">
-                        <span class="column-title">${stage.name}</span>
+                        <span class="column-title">${stage.label}</span>
                         <span class="column-count">${stageDeals.length}</span>
                     </div>
                     <div class="revenue-oracle" title="Revenue Oracle">
@@ -65,8 +65,8 @@ function initPipeline() {
                 cardEl.innerHTML = `
                     <div class="deal-header">
                         <div>
-                            <div class="deal-title">${deal.title || 'Oportunidade'}</div>
-                            <div class="deal-contact">${deal.contact || 'Sem contato'}</div>
+                    <div class="deal-title">${deal.title || 'Oportunidade'}</div>
+                    <div class="deal-contact">${deal.contact_id ? '' : 'Sem contato'}</div>
                         </div>
                         <div class="platform-icon ${deal.platform || 'whatsapp'}" title="${deal.platform}">
                             ${getPlatformIcon(deal.platform || 'whatsapp')}
@@ -123,11 +123,11 @@ function initPipeline() {
                 // Update deal stage
                 const dealIndex = deals.findIndex(d => d.id === dealId);
                 if (dealIndex > -1 && deals[dealIndex].stage !== newStageId) {
-                    const oldStageName = stages.find(s => s.id === deals[dealIndex].stage)?.name || '';
+                    const oldStageName = stages.find(s => s.id === deals[dealIndex].stage)?.label || '';
                     deals[dealIndex].stage = newStageId;
                     
                     // Add AI intelligence note for move
-                    deals[dealIndex].aiReason = `Atualização manual de "${oldStageName}" para "${stage.name}".`;
+                    deals[dealIndex].aiReason = `Atualização manual de "${oldStageName}" para "${stage.label}".`;
                     
                     // Re-render
                     renderBoard();

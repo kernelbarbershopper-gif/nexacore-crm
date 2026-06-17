@@ -333,11 +333,98 @@ const contacts = [
     conversations: 0,
     total_spent: 0,
     predicted_value: 4000
+  },
+  {
+    name: 'Yellowstone Outfitters',
+    email: 'info@yellowstoneoutfitters.com',
+    phone: '406-586-7890',
+    initials: 'YO',
+    platform: 'instagram',
+    handle: '@yellowstoneoutfitters',
+    status: 'lead',
+    tags: ['turismo', 'guias', 'pesca', 'west-yellowstone'],
+    score: 80,
+    city: 'West Yellowstone',
+    company: 'Yellowstone Outfitters',
+    notes: 'Guias de pesca e turismo no Parque Yellowstone. Aberto maio/2026. Foco em fly fishing. Proprietário: Mike Reynolds.',
+    conversations: 0,
+    total_spent: 0,
+    predicted_value: 12000
+  },
+  {
+    name: 'Big Sky Brewing Co.',
+    email: 'taproom@bigskybrewing.com',
+    phone: '406-549-2777',
+    initials: 'BS',
+    platform: 'instagram',
+    handle: '@bigskybrewing',
+    status: 'lead',
+    tags: ['cervejaria', 'taproom', 'eventos', 'missoula'],
+    score: 85,
+    city: 'Missoula',
+    company: 'Big Sky Brewing Co.',
+    notes: 'Nova taproom aberta jun/2026 em Missoula. Cervejas artesanais + música ao vivo. Capacidade 200 pessoas. Eventos corporativos.',
+    conversations: 0,
+    total_spent: 0,
+    predicted_value: 15000
+  },
+  {
+    name: 'Montana Made Marketplace',
+    email: 'hello@montanamade.com',
+    phone: null,
+    initials: 'MM',
+    platform: 'instagram',
+    handle: '@montanamademarketplace',
+    status: 'lead',
+    tags: ['marketplace', 'artesanato', 'ecommerce', 'helena'],
+    score: 70,
+    city: 'Helena',
+    company: 'Montana Made Marketplace',
+    notes: 'Marketplace online de artesãos de MT. Lançou plataforma abr/2026. 50+ vendedores locais. Modelo comissão 15%.',
+    conversations: 0,
+    total_spent: 0,
+    predicted_value: 8000
+  },
+  {
+    name: 'Glacier Peaks Roofing',
+    email: 'estimates@glacierpeaks.com',
+    phone: '406-755-1234',
+    initials: 'GP',
+    platform: 'whatsapp',
+    handle: '+14067551234',
+    status: 'lead',
+    tags: ['telhados', 'construcao', 'kalispell', 'servicos'],
+    score: 75,
+    city: 'Kalispell',
+    company: 'Glacier Peaks Roofing',
+    notes: 'Empresa de telhados residencial/comercial. Nova frota 2026. Certificados GAF Master Elite. 5 anos garantia mão de obra.',
+    conversations: 0,
+    total_spent: 0,
+    predicted_value: 10000
+  },
+  {
+    name: 'Bozeman Wellness Studio',
+    email: 'zen@bozemanwellness.com',
+    phone: '406-522-9876',
+    initials: 'BW',
+    platform: 'instagram',
+    handle: '@bozemanwellnessstudio',
+    status: 'lead',
+    tags: ['wellness', 'yoga', 'spa', 'bozeman'],
+    score: 65,
+    city: 'Bozeman',
+    company: 'Bozeman Wellness Studio',
+    notes: 'Studio yoga/pilates + spa. Aberto fev/2026. Aulas pré-natal, reabilitação. Membros: 120+. Proprietária: Sarah Chen.',
+    conversations: 0,
+    total_spent: 0,
+    predicted_value: 6000
   }
 ];
 
 async function run() {
   await client.connect();
+
+  const insertedContacts = [];
 
   for (const c of contacts) {
     const dna = {
@@ -364,14 +451,90 @@ async function run() {
       ]);
       if (res.rows.length > 0) {
         console.log(`✓ ${res.rows[0].name}`);
+        insertedContacts.push({ ...res.rows[0], platform: c.platform, predicted_value: c.predicted_value, score: c.score });
+      } else {
+        const existing = await client.query('SELECT id, name FROM contacts WHERE handle = $1', [c.handle]);
+        if (existing.rows.length > 0) {
+          insertedContacts.push({ ...existing.rows[0], platform: c.platform, predicted_value: c.predicted_value, score: c.score });
+        }
       }
     } catch (err) {
       console.error(`✗ ${c.name}: ${err.message}`);
     }
   }
 
+  const stages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed'];
+  const sentiments = ['positive', 'neutral', 'neutral', 'negative', 'positive'];
+  const greetings = ['Oi', 'Bom dia', 'Boa tarde', 'Olá', 'Hey'];
+  const responses = [
+    'Olá! Obrigado pelo contato. Como posso ajudar?',
+    'Que bom falar com você! Posso tirar suas dúvidas.',
+    'Perfeito, vou verificar isso para você.',
+    'Entendi! Vou preparar uma proposta personalizada.',
+    'Fico feliz com o interesse! Vou enviar mais detalhes.'
+  ];
+  const customerMessages = [
+    'Quero saber mais sobre os planos',
+    'Qual o valor do investimento?',
+    'Vocês atendem minha região?',
+    'Preciso de algo personalizado',
+    'Tem como agendar uma demo?',
+    'Pode mandar o catálogo?',
+    'Quais formas de pagamento?',
+    'Vocês têm suporte em português?',
+    'Gostei muito do que vi!',
+    'Estou comparando com outras opções'
+  ];
+
+  let dealCount = 0;
+  let convCount = 0;
+
+  for (const contact of insertedContacts) {
+    const stageIdx = Math.min(stages.length - 1, Math.floor(contact.predicted_value / 3000));
+    const stage = stages[stageIdx] || 'new';
+    const sentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
+    const numMessages = Math.floor(Math.random() * 4) + 1;
+    const messages = [];
+
+    for (let i = 0; i < numMessages; i++) {
+      messages.push({ id: `m${i}`, sender: 'contact', from: 'contact', text: customerMessages[Math.floor(Math.random() * customerMessages.length)], time: `${(8 + i * 2).toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` });
+      messages.push({ id: `m${i}r`, sender: 'agent', from: 'agent', text: responses[Math.floor(Math.random() * responses.length)], time: `${(9 + i * 2).toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` });
+    }
+
+    const lastCustomerMsg = messages.filter(m => m.sender === 'contact').pop();
+    const lastActivity = new Date(Date.now() - Math.floor(Math.random() * 7 * 86400000)).toISOString();
+
+    try {
+      const dealRes = await client.query(`
+        INSERT INTO deals (contact_id, stage, value, probability, title, platform, days_in_stage)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT DO NOTHING
+        RETURNING id;
+      `, [contact.id, stage, contact.predicted_value, Math.min(95, contact.score), `${contact.name} — Oportunidade`, contact.platform, Math.floor(Math.random() * 10)]);
+      if (dealRes.rows.length > 0) dealCount++;
+
+      const unread = Math.random() > 0.7 ? 1 : 0;
+      const convRes = await client.query(`
+        INSERT INTO conversations (contact_id, platform, unread, last_activity, sentiment, sentiment_score, messages)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT DO NOTHING
+        RETURNING id;
+      `, [contact.id, contact.platform, unread, lastActivity, sentiment, contact.score, JSON.stringify(messages)]);
+      if (convRes.rows.length > 0) convCount++;
+
+      try {
+        await client.query(`
+          INSERT INTO activities (type, text, time)
+          VALUES ($1, $2, $3)
+        `, [contact.platform, `Interação com ${contact.name}`, lastActivity]);
+      } catch (_) {}
+    } catch (err) {
+      console.error(`✗ Deal/Conv ${contact.name}: ${err.message}`);
+    }
+  }
+
   await client.end();
-  console.log(`\n→ ${contacts.length} contatos inseridos.`);
+  console.log(`\n→ ${insertedContacts.length} contatos, ${dealCount} deals, ${convCount} conversas inseridos.`);
 }
 
 run();

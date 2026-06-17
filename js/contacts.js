@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════
-   NexaCore CRM — Contacts Module
+   CRM Intelligence — Contacts Module
    ═══════════════════════════════════════════════════════════════ */
 
 function renderContactsModule() {
   if (!window.NexaAI) window.NexaAI = {};
-  if (!NexaAI.generateDNAProfile) {
-    NexaAI.generateDNAProfile = function(canvas, dna) {
+  if (!NexaAI.drawDNAChart) {
+    NexaAI.drawDNAChart = function(canvas, dna) {
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const w = canvas.width;
@@ -93,9 +93,7 @@ function renderContactsModule() {
         ctx.fill();
       }
     };
-  }
-
-  // --- Filter and Search Logic ---
+  }  // --- Filter and Search Logic ---
   const grid = document.getElementById('contactsGrid');
   const searchInput = document.getElementById('globalSearch');
   const platformFilter = document.getElementById('platformFilter');
@@ -238,9 +236,11 @@ function renderContactsModule() {
 
     // DNA Chart
     const canvas = document.getElementById('dnaCanvas');
-    if (canvas && contact.dna) {
-      NexaAI.generateDNAProfile(canvas, contact.dna);
-    }
+      if (canvas && contact.dna) {
+        if (NexaAI.drawDNAChart) {
+          NexaAI.drawDNAChart(canvas, contact.dna);
+        }
+      }
 
     // Heatmap
     generateHeatmap();

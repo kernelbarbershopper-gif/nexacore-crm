@@ -340,3 +340,61 @@ canvas#neuralMapCanvas {
     min-height: 400px;
   }
 }
+
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+  .kpi-card {
+    padding: var(--space-3);
+  }
+  .kpi-value {
+    font-size: var(--text-xl);
+  }
+  .kpi-label {
+    font-size: var(--text-xs);
+  }
+  .map-card {
+    min-height: 300px;
+  }
+  .oracle-card, .activity-card {
+    padding: var(--space-3);
+  }
+  .oracle-value {
+    font-size: var(--text-xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+  }
+  .kpi-card {
+    padding: var(--space-2);
+  }
+  .kpi-value {
+    font-size: var(--text-lg);
+  }
+  .kpi-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .kpi-trend {
+    font-size: 10px;
+  }
+  .map-card {
+    min-height: 240px;
+  }
+  .canvas-container {
+    height: 200px;
+  }
+  .oracle-value {
+    font-size: var(--text-lg);
+  }
+  .ai-insight {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

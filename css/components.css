@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   NexaCore CRM — Component Library
+   CRM Intelligence — Component Library
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Header ── */
@@ -987,9 +987,11 @@ textarea.input-field {
   .header {
     left: var(--sidebar-collapsed);
   }
+  .mobile-menu-btn { display: none; }
 }
 
 @media (max-width: 768px) {
+  .mobile-menu-btn { display: flex !important; }
   .sidebar {
     transform: translateX(-100%);
     width: var(--sidebar-width);
@@ -997,9 +999,35 @@ textarea.input-field {
   .sidebar.open {
     transform: translateX(0);
   }
+  .sidebar.open .sidebar-brand-text,
+  .sidebar.open .sidebar-item span,
+  .sidebar.open .sidebar-section-label,
+  .sidebar.open .sidebar-item-badge {
+    display: flex;
+  }
+  .sidebar.open .sidebar-item {
+    justify-content: flex-start;
+  }
+  .sidebar.open .sidebar-brand {
+    justify-content: flex-start;
+  }
   .header {
     left: 0;
     padding: 0 var(--space-4);
   }
   .search-bar { width: 200px; }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+  .search-bar { width: 160px; }
+  .search-bar input { font-size: var(--text-sm); }
+  .btn { padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
+  .header { padding: 0 var(--space-3); }
+  .header-title { font-size: var(--text-lg); }
+  .header-subtitle { font-size: var(--text-xs); }
+  .toast { max-width: 90vw; }
 }

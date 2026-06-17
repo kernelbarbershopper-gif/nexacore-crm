@@ -80,6 +80,7 @@ function initNeuralMap() {
     nodes.forEach(n => {
         n.px = n.x * width;
         n.py = n.y * height;
+        n.size = n.size || n.radius || 5;
     });
 
     function draw() {
@@ -198,6 +199,10 @@ function renderActivityFeed() {
             iconHtml = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>';
         }
 
+        const title = activity.title || activity.text || 'Atividade';
+        const desc = activity.desc || '';
+        const timeDisplay = activity.time ? NexaData.timeAgo(activity.time) : '';
+
         const item = document.createElement('div');
         item.className = 'activity-item';
         item.innerHTML = `
@@ -206,10 +211,10 @@ function renderActivityFeed() {
             </div>
             <div class="activity-content">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <h4 class="activity-title">${activity.title}</h4>
-                    <span class="activity-time">${activity.time}</span>
+                    <h4 class="activity-title">${title}</h4>
+                    <span class="activity-time">${timeDisplay}</span>
                 </div>
-                <p class="activity-desc">${activity.desc}</p>
+                <p class="activity-desc">${desc}</p>
             </div>
         `;
         

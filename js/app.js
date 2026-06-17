@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   NexaCore CRM — Core App
+   CRM Intelligence — Core App
    Global helpers, state management, utilities
    ═══════════════════════════════════════════════════════════════ */
 
@@ -7,7 +7,10 @@ const NexaApp = {
   currentPage: '',
 
   init() {
+    BrandConfig.load();
+    BrandConfig.applyCSS();
     this.detectCurrentPage();
+    this.setPageTitle();
     NexaSidebar.init();
     this.initHeader();
     this.initAnimations();
@@ -18,6 +21,18 @@ const NexaApp = {
     const path = window.location.pathname;
     const file = path.split('/').pop() || 'index.html';
     this.currentPage = file.replace('.html', '') || 'index';
+  },
+
+  setPageTitle() {
+    const titles = {
+      index: 'Dashboard Principal',
+      conversations: 'Central de Conversas',
+      pipeline: 'Pipeline de Vendas',
+      contacts: 'Contatos',
+      analytics: 'Analytics & IA',
+      settings: 'Configurações'
+    };
+    BrandConfig.setTitle(titles[this.currentPage] || 'Dashboard');
   },
 
   /* ── Header ── */

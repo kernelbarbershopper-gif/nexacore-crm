@@ -506,7 +506,8 @@ const NexaAI = {
       (conversation.messages || []).filter(m => m.from === 'contact').slice(-1)[0]?.text || ''
     );
 
-    const systemPrompt = `Você é um assistente Ghost Writer especializado em atendimento e vendas no CRM NexaCore.
+    const brandName = (typeof BrandConfig !== 'undefined') ? BrandConfig.name : 'CRM Intelligence';
+    const systemPrompt = `Você é um assistente Ghost Writer especializado em atendimento e vendas no ${brandName}.
 Sua identidade e tom de voz: ${brandVoice}
 Cliente: ${contact.name}
 Plataforma: ${contact.platform}
@@ -725,15 +726,21 @@ Sugira 2 opções curtas (1-2 frases). Formato JSON: ["Opção 1", "Opção 2"]`
 
     const nodes = contacts.map((c, i) => ({
       id: c.id,
+      index: i,
       label: c.name.split(' ').slice(0, 2).join(' '),
-      x: 0, y: 0,
+      x: Math.random(),
+      y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.001,
+      vy: (Math.random() - 0.5) * 0.001,
       radius: 10 + (c.score / 10),
+      size: 10 + (c.score / 10),
       color: c.platform === 'instagram' ? '#f472b6' : '#00d4aa',
       score: c.score,
       platform: c.platform,
       city: c.city,
       tags: c.tags || [],
-      connections: []
+      connections: [],
+      active: c.score >= 70
     }));
 
     const links = [];
@@ -758,8 +765,10 @@ Sugira 2 opções curtas (1-2 frases). Formato JSON: ["Opção 1", "Opção 2"]`
 
         if (strength > 15) {
           links.push({
-            source: a.id,
-            target: b.id,
+            source: i,
+            target: j,
+            sourceId: a.id,
+            targetId: b.id,
             strength: Math.min(100, Math.round(strength))
           });
         }
