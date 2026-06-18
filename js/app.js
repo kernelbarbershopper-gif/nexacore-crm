@@ -6,28 +6,15 @@
 const NexaApp = {
   currentPage: '',
 
-  async init() {
+  init() {
     BrandConfig.load();
     BrandConfig.applyCSS();
     this.detectCurrentPage();
     this.setPageTitle();
-    await NexaSidebar.init();
+    NexaSidebar.init();
     this.initHeader();
     this.initAnimations();
     this.initToasts();
-    this.initAuth();
-  },
-
-  initAuth() {
-    const publicPages = ['login.html', 'register.html', ''];
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    
-    if (window.NexaAuth) {
-      const user = NexaAuth.getUser();
-      if (!user && !publicPages.includes(currentPage)) {
-        window.location.href = 'login.html';
-      }
-    }
   },
 
   detectCurrentPage() {

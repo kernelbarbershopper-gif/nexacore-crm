@@ -5,3 +5,12 @@ Thumbs.db
 .env
 
 .vercel
+
+# Android
+android/app/build/
+android/app/release/
+*.keystore
+*.jks
+keystore.properties
+*.apk
+*.aab

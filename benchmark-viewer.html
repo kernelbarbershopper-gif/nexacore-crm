@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexaCore CRM Benchmark</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #0a0f1a; color: #e8ecf4; padding: 2rem; }
+    h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, #6c5ce7, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { color: #8892a8; margin-bottom: 2rem; }
+    .controls { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    input, select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e8ecf4; padding: 0.625rem 1rem; border-radius: 8px; font-size: 0.875rem; }
+    input[type="text"] { flex: 1; min-width: 200px; }
+    select { cursor: pointer; }
+    .table-wrapper { overflow: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: rgba(255,255,255,0.02); }
+    table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem; white-space: nowrap; }
+    th { background: rgba(108, 92, 231, 0.15); color: #a8a0e6; font-weight: 600; position: sticky; top: 0; z-index: 1; }
+    tr:hover td { background: rgba(108, 92, 231, 0.08); }
+    td:first-child { font-weight: 600; color: #f472b6; position: sticky; left: 0; background: rgba(10,15,26,0.9); z-index: 2; }
+    .our-row td { background: rgba(244, 114, 182, 0.1); }
+    .our-row td:first-child { background: rgba(244, 114, 182, 0.2); }
+    .yes { color: #00d4aa; }
+    .no { color: #ff6b6b; }
+    .partial { color: #ffd93d; }
+    .rating { font-weight: 600; }
+    .rating.high { color: #00d4aa; }
+    .rating.mid { color: #ffd93d; }
+    .rating.low { color: #ff6b6b; }
+    .price { font-family: monospace; color: #a8a0e6; }
+    .category { color: #8892a8; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    @media (max-width: 768px) { body { padding: 1rem; } h1 { font-size: 1.25rem; } th, td { padding: 0.5rem; font-size: 0.7rem; } }
+  </style>
+</head>
+<body>
+  <h1>NexaCore CRM — Benchmark Competitivo</h1>
+  <p class="subtitle">Comparar class="subtitle">18 CRMs comparados em 50+ critérios — Dados de referência (verificar atuais no site oficial)</p>
+  
+  <div class="controls">
+    <input type="text" id="search" placeholder="🔍 Buscar CRM, feature, preço...">
+    <select id="filterCategory">
+      <option value="">Todas as categorias</option>
+      <option value="whatsapp">WhatsApp/Instagram</option>
+      <option value="ai">IA & Preditivo</option>
+      <option value="pipeline">Pipeline & Vendas</option>
+      <option value="integration">Integrações & API</option>
+      <option value="pricing">Preço & Planos</option>
+      <option value="enterprise">Enterprise & Compliance</option>
+    </select>
+    <select id="filterSegment">
+      <option value="">Todos segmentos</option>
+      <option value="SMB">SMB</option>
+      <option value="Mid">Mid-Market</option>
+      <option value="Enterprise">Enterprise</option>
+    </select>
+  </div>
+
+  <div class="table-wrapper">
+    <table id="benchmarkTable">
+      <thead>
+        <tr id="headerRow"></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const CATEGORY_MAP = {
+      'CRM Name': 'basic', 'Website': 'basic', 'Pricing Model': 'pricing', 'Starting Price (USD/mo)': 'pricing',
+      'Free Trial': 'pricing', 'WhatsApp Native': 'whatsapp', 'Instagram DM Native': 'whatsapp',
+      'Facebook Messenger Native': 'whatsapp', 'Email Integration': 'integration', 'SMS Integration': 'integration',
+      'Unified Inbox': 'whatsapp', 'Multi-agent Support': 'whatsapp', 'Broadcast/Mass Messaging': 'whatsapp',
+      'Chatbot/Flow Builder': 'whatsapp', 'AI Lead Scoring': 'ai', 'AI Predictive Revenue': 'ai',
+      'Behavioral Profiling (DNA)': 'ai', 'Engagement Heatmap': 'ai', 'Auto-tagging by AI': 'ai',
+      'Sentiment Analysis': 'ai', 'Conversation Analytics': 'ai', 'Pipeline/Kanban': 'pipeline',
+      'Custom Fields': 'pipeline', 'Custom Pipelines': 'pipeline', 'Workflow Automation': 'pipeline',
+      'Webhooks/API': 'integration', 'Zapier/Make Integration': 'integration', 'Native Integrations Count': 'integration',
+      'Mobile App (iOS/Android)': 'integration', 'Dark Mode': 'integration', 'White Label/Custom Branding': 'enterprise',
+      'SSO/SAML': 'enterprise', 'Role-based Access': 'enterprise', 'GDPR/CCPA Compliance': 'enterprise',
+      'Data Export': 'enterprise', 'On-premise Option': 'enterprise', 'Support Level': 'enterprise',
+      'Implementation Time (days)': 'pricing', 'Best For (SMB/Mid/Enterprise)': 'pricing',
+      'G2 Rating': 'basic', 'Capterra Rating': 'basic', 'Strengths': 'basic', 'Weaknesses': 'basic', 'Notes': 'basic'
+    };
+
+    async function loadCSV() {
+      const response = await fetch('benchmark-crm.csv');
+      const text = await response.text();
+      return parseCSV(text);
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      const headers = parseLine(lines[0]);
+      const rows = lines.slice(1).map(line => {
+        const values = parseLine(line);
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = values[i] || '');
+        return obj;
+      });
+      return { headers, rows };
+    }
+
+    function parseLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (char === ',' && !inQuotes) {
+          result.push(current); current = '';
+        } else { current += char; }
+      }
+      result.push(current);
+      return result;
+    }
+
+    function renderTable(data) {
+      const { headers, rows } = data;
+      const headerRow = document.getElementById('headerRow');
+      const tableBody = document.getElementById('tableBody');
+
+      headerRow.innerHTML = headers.map(h => {
+        const cat = CATEGORY_MAP[h] || 'basic';
+        return `<th data-category="${cat}">${h}<span class="category">${cat}</span></th>`;
+      }).join('');
+
+      tableBody.innerHTML = rows.map((row, idx) => {
+        const isOur = row['CRM Name']?.includes('NexaCore');
+        const rowClass = isOur ? 'our-row' : '';
+        return `<tr class="${rowClass}">${headers.map(h => {
+          let val = row[h] || '';
+          let cls = '';
+          if (val === 'Sim') { val = '✓ Sim'; cls = 'yes'; }
+          else if (val === 'Não') { val = '✗ Não'; cls = 'no'; }
+          else if (val === 'Parcial' || val === 'Via integração' || val === 'Via Marketplace' || val === 'Via Sunshine' || val === 'Via Digital Engagement') { val = '~ ' + val; cls = 'partial'; }
+          else if (h === 'G2 Rating' || h === 'Capterra Rating') {
+            const num = parseFloat(val);
+            if (!isNaN(num)) { cls = num >= 4.5 ? 'rating high' : num >= 4.0 ? 'rating mid' : 'rating low'; val = num.toFixed(1); }
+          }
+          else if (h === 'Starting Price (USD/mo)') { cls = 'price'; }
+          else if (h === 'Best For (SMB/Mid/Enterprise)') { cls = 'category'; }
+          return `<td class="${cls}">${escapeHtml(val)}</td>`;
+        }).join('')}</tr>`;
+      }).join('');
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function filterTable() {
+      const search = document.getElementById('search').value.toLowerCase();
+      const catFilter = document.getElementById('filterCategory').value;
+      const segFilter = document.getElementById('filterSegment').value;
+      const rows = document.querySelectorAll('#tableBody tr');
+
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        const segment = row.querySelector('td:nth-last-child(5)')?.innerText || '';
+        let show = true;
+
+        if (search && !text.includes(search)) show = false;
+        if (catFilter) {
+          const headers = document.querySelectorAll('#headerRow th');
+          let hasMatch = false;
+          row.querySelectorAll('td').forEach((td, i) => {
+            if (headers[i]?.dataset.category === catFilter && td.classList.contains('yes')) hasMatch = true;
+          });
+          if (!hasMatch) show = false;
+        }
+        if (segFilter && !segment.includes(segFilter)) show = false;
+
+        row.style.display = show ? '' : 'none';
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', filterTable);
+    document.getElementById('filterCategory').addEventListener('change', filterTable);
+    document.getElementById('filterSegment').addEventListener('change', filterTable);
+
+    loadCSV().then(renderTable).catch(console.error);
+  </script>
+</body>
+</html>
