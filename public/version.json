@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0.1",
+  "critical": false,
+  "message": "Nova versão 1.0.0.1 disponível com melhorias e correções!",
+  "releaseNotes": [
+    "Tema preto e dourado",
+    "Melhorias na responsividade mobile",
+    "Correções de bugs",
+    "PWA otimizado"
+  ],
+  "minSupportedVersion": "1.0.0.0"
+}

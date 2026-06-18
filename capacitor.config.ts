@@ -3,6 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.nexacore.crm',
   appName: 'NexaCore CRM',
+  version: '1.0.0.1',
   webDir: 'public',
   server: {
     url: 'https://nexacore-crm.vercel.app',

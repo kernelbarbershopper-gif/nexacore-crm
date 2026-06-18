@@ -101,6 +101,7 @@
   <script src="js/app.js"></script>
   <script src="js/sidebar.js"></script>
   <script src="js/dashboard.js"></script>
-  <script>document.addEventListener('DOMContentLoaded', () => { initNexaData().then(() => { NexaApp.init(); renderKPIs(); initNeuralMap(); initRevenueOracle(); renderActivityFeed(); }); });</script>
+  <script src="js/app-updater.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => { initNexaData().then(() => { NexaApp.init(); renderKPIs(); initNeuralMap(); initRevenueOracle(); renderActivityFeed(); if (window.AppUpdater) AppUpdater.init(); }); });</script>
 </body>
 </html>
